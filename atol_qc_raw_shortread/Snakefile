@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+
+import tempfile
+
+globals().update(config)
+workingdir = tempfile.mkdtemp()
+logger.warning(f"Using {workingdir} for intermediate files")
+
+# raise ValueError(config)
+
+
+# trim adaptors
+rule trim:
+    input:
+        pipe=Path(workingdir, "repair", "reads.fastq"),
+        adaptors=Path(workingdir, "adaptors.fasta"),
+    output:
+        r1=r1_out,
+        r2=r2_out,
+        unpaired=Path(workingdir, "unpaired.fq.gz"),
+        stats=Path(workingdir, "stats", "trim.txt"),
+    params:
+        forcetrimmod=5,
+    log:
+        Path(workingdir, "trim.log"),
+    threads: 2
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
+        mem_mb=lambda wildcards, attempt: 2e3 * attempt,
+    shell:
+        "bbduk.sh "
+        "-Xmx{resources.mem_mb}m "
+        "threads={threads} "
+        "in={input.pipe} "
+        "int=t "
+        "out={output.r1} "
+        "out2={output.r2} "
+        "outs={output.unpaired} "
+        "ref={input.adaptors} "
+        "ktrim=r k=23 mink=11 hdist=1 tpe tbo "
+        "forcetrimmod={params.forcetrimmod} "
+        "stats={output.stats} "
+        "2> {log} "
+
+
+# double check pairing
+rule repair:
+    input:
+        r1=r1,
+        r2=r2,
+    output:
+        pipe(Path(workingdir, "repair", "reads.fastq")),
+    log:
+        Path(workingdir, "repair.log"),
+    threads: 1
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
+        mem_mb=lambda wildcards, attempt: 4e3 * attempt,
+    shell:
+        "repair.sh "
+        "-Xmx{resources.mem_mb}m "
+        "-Xms100m "
+        "in={input.r1} "
+        "in2={input.r2} "
+        "out=stdout.fastq "
+        "outs=/dev/null "
+        "repair=t "
+        "tossbrokenreads=t "
+        "tossjunk=t "
+        ">> {output} "
+        "2> {log}"
+
+
+rule combine_adaptors:
+    input:
+        adaptors,
+    output:
+        adaptors=Path(workingdir, "adaptors.fasta"),
+        duplicates=Path(workingdir, "duplicated_adaptors.fasta"),
+    log:
+        Path("logs", "combine_adaptors.log"),
+    threads: 1
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
+        mem_mb=4000,
+    shell:
+        "cat {input} | "
+        "dedupe.sh "
+        "-Xmx{resources.mem_mb}m "
+        "in=stdin.fasta "
+        "out={output.adaptors} "
+        "outd={output.duplicates} "
+        "absorbcontainment=f "
+        "absorbrc=f "
+        "ascending=t "
+        "exact=t "
+        "maxedits=0 "
+        "maxsubs=0 "
+        "sort=name "
+        "touppercase=t "
+        "uniquenames=t "
+        "2> {log} "
