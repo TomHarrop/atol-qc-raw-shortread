@@ -21,6 +21,21 @@ def parse_arguments():
 
     parser.add_argument("-n", help="Dry run", dest="dry_run", action="store_true")
 
+    parser.add_argument(
+        "--qtrim",
+        help="Trim right end of reads to remove bases with quality below trimq.",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+    )
+
+    parser.add_argument(
+        "--trimq",
+        type=float,
+        dest="trimq",
+        help="Regions with average quality BELOW this will be trimmed, if qtrim is enabled",
+        default=6.0,
+    )
+
     input_group = parser.add_argument_group("Input")
 
     input_group.add_argument(
@@ -66,7 +81,7 @@ def main():
     logger.warning(f"{pkg_name} version {pkg_version}")
 
     # get the snakefile
-    snakefile = Path(resources.files(__package__), "Snakefile")
+    snakefile = Path(resources.files(__package__), "workflow", "Snakefile")
     if snakefile.is_file():
         logger.warning(f"Using snakefile {snakefile}")
     else:

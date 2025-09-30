@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-dependencies = ["snakemake>=9.11.6,<10"]
+dependencies = ["snakemake>=9.11.6,<10", "pandas>=2.1.1"]
 name = "atol-qc-raw-shortread"
 dynamic = ["version"]
 description = "python3 wrapper for AToL raw read QC steps (short read version)"
@@ -22,6 +22,7 @@ classifiers = [
 
 [project.scripts]
 atol-qc-raw-shortread = "atol_qc_raw_shortread.__main__:main"
+process_step_logs = "atol_qc_raw_shortread.src.process_step_logs:main"
 
 [project.urls]
 Homepage = "https://github.com/tomharrop/atol-qc-raw-shortread"
@@ -31,9 +32,9 @@ packages = ["atol_qc_raw_shortread"]
 
 
 [tool.setuptools.package-data]
-atol_qc_raw_shortread = ["Snakefile"]
+atol_qc_raw_shortread = ["workflow/Snakefile", "workflow/rules/stats.smk"]
 
-# [tool.setuptools.exclude-package-data]
-# "*" = ["dev/*"]
+[tool.setuptools.exclude-package-data]
+"*" = ["extras/*"]
 
 [tool.setuptools_scm]

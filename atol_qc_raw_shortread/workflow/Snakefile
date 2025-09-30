@@ -2,11 +2,16 @@
 
 import tempfile
 
+
 globals().update(config)
 workingdir = tempfile.mkdtemp()
 logger.warning(f"Using {workingdir} for intermediate files")
 
-# raise ValueError(config)
+stats_directory = stats.parent
+logger.warning(f"Stats will be output to stats_directory {stats_directory}")
+
+
+include: "rules/stats.smk"
 
 
 # trim adaptors
@@ -18,11 +23,12 @@ rule trim:
         r1=r1_out,
         r2=r2_out,
         unpaired=Path(workingdir, "unpaired.fq.gz"),
-        stats=Path(workingdir, "stats", "trim.txt"),
+        stats=Path(stats_directory, "trim_stats.txt"),
     params:
         forcetrimmod=5,
+        qtrim=lambda wildcards: f"qtrim=r trimq={trimq}" if qtrim else "",
     log:
-        Path(workingdir, "trim.log"),
+        Path(stats_directory, "trim.log"),
     threads: 2
     resources:
         time=lambda wildcards, attempt: 10 * attempt,
@@ -39,6 +45,7 @@ rule trim:
         "ref={input.adaptors} "
         "ktrim=r k=23 mink=11 hdist=1 tpe tbo "
         "forcetrimmod={params.forcetrimmod} "
+        "{params.qtrim} "
         "stats={output.stats} "
         "2> {log} "
 
@@ -51,7 +58,7 @@ rule repair:
     output:
         pipe(Path(workingdir, "repair", "reads.fastq")),
     log:
-        Path(workingdir, "repair.log"),
+        Path(stats_directory, "repair.log"),
     threads: 1
     resources:
         time=lambda wildcards, attempt: 10 * attempt,
@@ -76,7 +83,7 @@ rule combine_adaptors:
         adaptors,
     output:
         adaptors=Path(workingdir, "adaptors.fasta"),
-        duplicates=Path(workingdir, "duplicated_adaptors.fasta"),
+        duplicates=Path(stats_directory, "duplicated_adaptors.fasta"),
     log:
         Path("logs", "combine_adaptors.log"),
     threads: 1
@@ -100,3 +107,10 @@ rule combine_adaptors:
         "touppercase=t "
         "uniquenames=t "
         "2> {log} "
+
+
+rule target:
+    default_target: True
+    input:
+        expand(Path(stats_directory, "{step}.csv"), step=["repair", "trim"]),
+        rules.trim.output,
