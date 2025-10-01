@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-dependencies = ["snakemake>=9.11.6,<10", "pandas>=2.1.1"]
+dependencies = ["snakemake>=9.11.6,<10", "pandas>=2.3.3,<3"]
 name = "atol-qc-raw-shortread"
 dynamic = ["version"]
 description = "python3 wrapper for AToL raw read QC steps (short read version)"
@@ -32,7 +32,11 @@ packages = ["atol_qc_raw_shortread"]
 
 
 [tool.setuptools.package-data]
-atol_qc_raw_shortread = ["workflow/Snakefile", "workflow/rules/stats.smk"]
+atol_qc_raw_shortread = [
+    "workflow/Snakefile",
+    "workflow/rules/stats.smk",
+    "workflow/report/stats.json",
+]
 
 [tool.setuptools.exclude-package-data]
 "*" = ["extras/*"]

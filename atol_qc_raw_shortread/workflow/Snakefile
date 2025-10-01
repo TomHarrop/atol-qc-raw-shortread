@@ -8,31 +8,36 @@ workingdir = tempfile.mkdtemp()
 logger.warning(f"Using {workingdir} for intermediate files")
 
 stats_directory = stats.parent
-logger.warning(f"Stats will be output to stats_directory {stats_directory}")
+logger.warning(f"Stats files will be saved to stats_directory {stats_directory}")
+
+if not logs_directory:
+    logger.warning(f"Not keeping logs")
+    logs_directory = workingdir
+else:
+    logger.warning(f"Saving logs to {logs_directory}")
 
 
 include: "rules/stats.smk"
 
 
-# trim adaptors
 rule trim:
     input:
         pipe=Path(workingdir, "repair", "reads.fastq"),
         adaptors=Path(workingdir, "adaptors.fasta"),
     output:
+        gchist=Path(logs_directory, "gchist.txt"),
         r1=r1_out,
         r2=r2_out,
+        stats=Path(logs_directory, "trim_stats.txt"),
         unpaired=Path(workingdir, "unpaired.fq.gz"),
-        stats=Path(stats_directory, "trim_stats.txt"),
     params:
         forcetrimmod=5,
         qtrim=lambda wildcards: f"qtrim=r trimq={trimq}" if qtrim else "",
     log:
-        Path(stats_directory, "trim.log"),
-    threads: 2
+        Path(logs_directory, "trim.log"),
+    threads: min(workflow.cores - 2, 12)  # seems to become IO bound at 12 threads
     resources:
-        time=lambda wildcards, attempt: 10 * attempt,
-        mem_mb=lambda wildcards, attempt: 2e3 * attempt,
+        mem=lambda wildcards, attempt: f"{4* attempt}GiB",
     shell:
         "bbduk.sh "
         "-Xmx{resources.mem_mb}m "
@@ -46,7 +51,9 @@ rule trim:
         "ktrim=r k=23 mink=11 hdist=1 tpe tbo "
         "forcetrimmod={params.forcetrimmod} "
         "{params.qtrim} "
+        "gchist={output.gchist} "
         "stats={output.stats} "
+        "zl=9 "
         "2> {log} "
 
 
@@ -58,11 +65,10 @@ rule repair:
     output:
         pipe(Path(workingdir, "repair", "reads.fastq")),
     log:
-        Path(stats_directory, "repair.log"),
-    threads: 1
+        Path(logs_directory, "repair.log"),
+    threads: 2
     resources:
-        time=lambda wildcards, attempt: 10 * attempt,
-        mem_mb=lambda wildcards, attempt: 4e3 * attempt,
+        mem=lambda wildcards, attempt: f"{4* attempt}GiB",
     shell:
         "repair.sh "
         "-Xmx{resources.mem_mb}m "
@@ -83,13 +89,12 @@ rule combine_adaptors:
         adaptors,
     output:
         adaptors=Path(workingdir, "adaptors.fasta"),
-        duplicates=Path(stats_directory, "duplicated_adaptors.fasta"),
+        duplicates=Path(logs_directory, "duplicated_adaptors.fasta"),
     log:
-        Path("logs", "combine_adaptors.log"),
+        Path(logs_directory, "combine_adaptors.log"),
     threads: 1
     resources:
-        time=lambda wildcards, attempt: 10 * attempt,
-        mem_mb=4000,
+        mem="4GiB",
     shell:
         "cat {input} | "
         "dedupe.sh "
@@ -112,5 +117,5 @@ rule combine_adaptors:
 rule target:
     default_target: True
     input:
-        expand(Path(stats_directory, "{step}.csv"), step=["repair", "trim"]),
+        rules.output_stats.output,
         rules.trim.output,
