@@ -28,6 +28,9 @@ atol-qc-raw-shortread \
     --stats results/stats.json 
 ```
 
+14 threads seems to be a good number on a fast disk. Reads are written to
+`fq.gz`, which is presumably IO bound at some point.
+
 ### Full usage
 
 ```
