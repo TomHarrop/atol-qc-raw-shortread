@@ -12,16 +12,16 @@ test_local:
 		-a test-data/bbmap_39.01_adaptors.fa test-data/bbmap_39.01_adaptors2.fa \
 		--stats test-output/local/stats.json \
 		--logs test-output/local/logs \
-		--threads 16
+		--threads 14
 
 full_test:
 	atol-qc-raw-shortread \
-		--in ~/Downloads/350768_AusARG_BRF_HCN7WDRXY_S3_L001_R1_001.fastq.gz \
-		--in2 ~/Downloads/350768_AusARG_BRF_HCN7WDRXY_S3_L001_R2_001.fastq.gz \
+		--in 350768_AusARG_BRF_HCN7WDRXY_S3_L001_R1_001.fastq.gz \
+		--in2 350768_AusARG_BRF_HCN7WDRXY_S3_L001_R2_001.fastq.gz \
 		--adaptors test-data/bbmap_39.01_adaptors.fa \
 		--out test-output/full/r1.fq.gz \
 		--out2 test-output/full/r2.fq.gz \
 		--stats test-output/full/stats.json \
 		--logs test-output/full/logs \
-		--threads 12
+		--threads 14
 		

@@ -12,7 +12,8 @@ Run short read QC on Hi-C or other Illumina reads.
 
 ```bash
 apptainer exec \
-  docker://quay.io/biocontainers/atol-qc-raw-shortread:0.1.2--pyhdfd78af_0 \
+  docker://quay.io/biocontainers/atol-qc-raw-shortread:0.1.0 \
+  atol-qc-raw-shortread  
   
 ```
 

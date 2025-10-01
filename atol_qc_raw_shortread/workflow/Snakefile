@@ -33,15 +33,16 @@ rule trim:
     params:
         forcetrimmod=5,
         qtrim=lambda wildcards: f"qtrim=r trimq={trimq}" if qtrim else "",
+        threads=lambda wildcards, threads: int(threads // 3), # split cores between bbduk and pigz
     log:
         Path(logs_directory, "trim.log"),
-    threads: min(workflow.cores - 2, 12)  # seems to become IO bound at 12 threads
+    threads: workflow.cores - 2  # save 2 cores for repair
     resources:
         mem=lambda wildcards, attempt: f"{4* attempt}GiB",
     shell:
         "bbduk.sh "
         "-Xmx{resources.mem_mb}m "
-        "threads={threads} "
+        "threads={params.threads} "
         "in={input.pipe} "
         "int=t "
         "out={output.r1} "

@@ -16,6 +16,13 @@ from snakemake.api import (
 from snakemake.settings.enums import Quietness
 
 
+def get_usable_threads(threads: int):
+    # the number allocated to bbduk needs to be factor of 3
+    usable_threads = int(2 + ((threads - 2) // 3) * 3)
+    logger.warning(f"Guessing the number of usable_threads is {usable_threads}")
+    return usable_threads
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
 
@@ -110,14 +117,16 @@ def main():
     # control output
     output_settings = OutputSettings(quiet={Quietness.RULES, Quietness.HOST})
 
-    # other settings
+    # set cores.
     resource_settings = ResourceSettings(
-        cores=args.threads,
+        cores=get_usable_threads(args.threads),
         overwrite_resource_scopes={
             "mem": "global",
             "threads": "global",
         },
     )
+
+    # other settings
     config_settings = ConfigSettings(config=args.__dict__)
     execution_settings = ExecutionSettings(args.__dict__, lock=False)
 
