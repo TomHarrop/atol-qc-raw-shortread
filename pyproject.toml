@@ -22,7 +22,7 @@ classifiers = [
 
 [project.scripts]
 atol-qc-raw-shortread = "atol_qc_raw_shortread.__main__:main"
-process_step_logs = "atol_qc_raw_shortread.src.process_step_logs:main"
+process_step_logs = "atol_qc_raw_shortread.process_step_logs:main"
 
 [project.urls]
 Homepage = "https://github.com/tomharrop/atol-qc-raw-shortread"
