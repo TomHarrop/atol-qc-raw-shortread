@@ -12,6 +12,7 @@ from snakemake.api import (
     ConfigSettings,
     ExecutionSettings,
     OutputSettings,
+    StorageSettings,
 )
 from snakemake.settings.enums import Quietness
 
@@ -115,7 +116,14 @@ def main():
     args.stats_template = stats_template
 
     # control output
-    output_settings = OutputSettings(quiet={Quietness.RULES, Quietness.HOST})
+    output_settings = OutputSettings(
+        quiet={
+            Quietness.HOST,
+            Quietness.REASON,
+            Quietness.PROGRESS,
+        },
+        printshellcmds=True,
+    )
 
     # set cores.
     resource_settings = ResourceSettings(
@@ -128,13 +136,17 @@ def main():
 
     # other settings
     config_settings = ConfigSettings(config=args.__dict__)
-    execution_settings = ExecutionSettings(args.__dict__, lock=False)
+    execution_settings = ExecutionSettings(lock=False)
+    storage_settings = StorageSettings(
+        # notemp=True
+    )
 
     with SnakemakeApi(output_settings) as snakemake_api:
         workflow_api = snakemake_api.workflow(
             snakefile=snakefile,
             resource_settings=resource_settings,
             config_settings=config_settings,
+            storage_settings=storage_settings,
         )
         dag = workflow_api.dag()
         dag.execute_workflow(

@@ -27,6 +27,13 @@ def get_stats_params(wildcards, input):
     base_count = trim_stats.loc[trim_stats["type"] == "Result", "bases"].iloc[0]
     read_count = trim_stats.loc[trim_stats["type"] == "Result", "reads"].iloc[0]
 
+    repair_stats = pd.read_csv(input.repair_stats)
+    input_bases = int(
+        repair_stats.loc[repair_stats["type"] == "Input", "bases"].iloc[0]
+    )
+
+    qc_bases_removed = input_bases - base_count
+
     with open(input.gchist, "r") as f:
         line = ""
         while not line.startswith("#Mean"):
@@ -39,6 +46,7 @@ def get_stats_params(wildcards, input):
         "base_count": int(base_count),
         "read_count": int(read_count),
         "mean_gc_content": float(mean_gc_content),
+        "qc_bases_removed": int(qc_bases_removed),
     }
 
 
