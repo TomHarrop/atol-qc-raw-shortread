@@ -24,7 +24,7 @@ def main():
         df["bases"] = pd.to_numeric(df["V3"])
 
     # write to stdout
-    df[["type", "reads", "bases"]].to_csv(sys.stdout, index=False, header=False)
+    df[["type", "reads", "bases"]].to_csv(sys.stdout, index=False, header=True)
 
 if __name__ == "__main__":
     main()

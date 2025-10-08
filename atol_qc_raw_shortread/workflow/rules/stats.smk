@@ -64,21 +64,11 @@ rule output_stats:
         "jinja2"
 
 
-rule combine_step_logs:
-    input:
-        Path(workingdir, "from_logs", "{step}.csv"),
-    output:
-        Path(logs_directory, "{step}.csv"),
-    shell:
-        "echo 'type,reads,bases' > {output} ; "
-        "cat {input} >> {output}"
-
-
 rule process_step_logs:
     input:
         Path(workingdir, "from_logs", "{step}.txt"),
     output:
-        temp(Path(workingdir, "from_logs", "{step}.csv")),
+        Path(logs_directory, "{step}.csv"),
     shell:
         "process_step_logs < {input} > {output} "
 
