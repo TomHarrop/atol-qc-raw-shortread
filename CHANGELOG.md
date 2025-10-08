@@ -1,6 +1,6 @@
 # Changelog
 
-## (unreleased)
+## 0.1.3 (2025-10-08)
 
 ### Changes
 
