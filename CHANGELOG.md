@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 (2025-10-13)
+
+### Changes
+
+* Sleep before all jobs.
+
 ## 0.1.4 (2025-10-08)
 
 ### Changes
