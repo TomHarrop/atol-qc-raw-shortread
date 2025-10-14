@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6 (2025-10-14)
+
+### Changes
+
+* Find the bbmap adaptor file at runtime.
+
 ## 0.1.5 (2025-10-13)
 
 ### Changes
