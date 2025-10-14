@@ -4,6 +4,7 @@
 from importlib import resources
 from importlib.metadata import metadata, files
 from pathlib import Path
+import shutil
 from snakemake.logging import logger
 import argparse
 from snakemake.api import (
@@ -23,6 +24,12 @@ def get_usable_threads(threads: int):
     usable_threads = int(2 + ((threads - 2) // 3) * 3)
     logger.warning(f"Guessing the number of usable_threads is {usable_threads}")
     return usable_threads
+
+
+def find_bbmap_adaptors_path():
+    bbmap_path = Path(shutil.which("bbmap.sh")).resolve()
+    adaptor_files = bbmap_path.parent.parent.glob("**/adapters.fa")
+    return list(adaptor_files)
 
 
 def parse_arguments():
@@ -55,13 +62,24 @@ def parse_arguments():
     input_group.add_argument(
         "--in2", required=True, type=Path, help="Read 2 input", dest="r2"
     )
+
+    # get the default bbmap adaptors file
+    help_string = "FASTA file(s) of adaptors. Multiple adaptor files can be used."
+
+    bbmap_adaptors = find_bbmap_adaptors_path()
+    if bbmap_adaptors:
+        help_string = (
+            help_string + f" Default {[x.as_posix() for x in bbmap_adaptors]}."
+        )
+
     input_group.add_argument(
         "-a",
         "--adaptors",
         type=Path,
-        help="FASTA file(s) of adaptors. Multiple adaptor files can be used.",
+        help=help_string,
         dest="adaptors",
         nargs="+",
+        default=bbmap_adaptors if bbmap_adaptors else None,
     )
 
     # outputs

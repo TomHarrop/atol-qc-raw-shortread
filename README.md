@@ -32,6 +32,10 @@ atol-qc-raw-shortread \
 14 threads seems to be a good number on a fast disk. Reads are written to
 `fq.gz`, which is presumably IO bound at some point.
 
+BBMap's included adaptor file is inside the container at under BBMap's
+installation directory, `/usr/local/opt`. To use that file, pass `--adaptors
+/path/to/resources/adapters.fa`.
+
 ### Full usage
 
 ```
