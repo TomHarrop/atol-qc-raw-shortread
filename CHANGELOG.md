@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.7 (2025-10-23)
+
+### Changes
+
+* Manual stats templating for sleep.
+
+### Other
+
+* Readme.
+
 ## 0.1.6 (2025-10-14)
 
 ### Changes
