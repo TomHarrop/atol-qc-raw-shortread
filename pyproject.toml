@@ -36,6 +36,7 @@ atol_qc_raw_shortread = [
     "workflow/Snakefile",
     "workflow/rules/stats.smk",
     "workflow/report/stats.json",
+    "workflow/scripts/render_template.py",
 ]
 
 [tool.setuptools.exclude-package-data]

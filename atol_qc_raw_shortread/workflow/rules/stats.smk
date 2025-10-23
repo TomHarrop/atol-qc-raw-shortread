@@ -60,8 +60,8 @@ rule output_stats:
         stats,
     params:
         stats=get_stats_params,
-    template_engine:
-        "jinja2"
+    script:
+        "../scripts/render_template.py"
 
 
 rule process_step_logs:
