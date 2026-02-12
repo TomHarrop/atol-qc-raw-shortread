@@ -9,10 +9,12 @@ test_local:
 		--in test-data/AG_P8P5C_S101_L002_R1_001.fastq.gz \
 		--in2 test-data/AG_P8P5C_S101_L002_R2_001.fastq.gz \
 		--cram test-output/local/AG_P8P5C_S101_L002.cram  \
+		--dataset_id "AG_P8P5C" \
+		--hic_kit "arima" \
 		-a test-data/bbmap_39.01_adaptors.fa test-data/bbmap_39.01_adaptors2.fa \
 		--stats test-output/local/stats.json \
 		--logs test-output/local/logs \
-		--threads 14 -n
+		--threads 14
 
 full_test:
 	atol-qc-raw-shortread \

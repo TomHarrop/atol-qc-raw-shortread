@@ -54,6 +54,30 @@ def parse_arguments():
         default=6.0,
     )
 
+    parser.add_argument(
+        "--dataset_id",
+        type=str,
+        dest="dataset_id",
+        help=(
+            """
+         Only for CRAM output. Will be added to the @RG header line.
+         """
+        ),
+        required=False,
+    )
+
+    parser.add_argument(
+        "--hic_kit",
+        type=str,
+        dest="hic_kit",
+        help=(
+            """
+         Only for CRAM output. Will be added to the @RG header line.
+         """
+        ),
+        required=False,
+    )
+
     # inputs
     input_group = parser.add_argument_group("Input")
 

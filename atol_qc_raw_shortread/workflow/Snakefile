@@ -26,6 +26,18 @@ else:
 include: "rules/stats.smk"
 
 
+def get_rg_line(wildcards):
+    rg_args = ""
+    if dataset_id:
+        rg_args = " ".join(
+            [rg_args, f"-r ID:{dataset_id} -r PU:{dataset_id} -r SM:{dataset_id}"]
+        )
+    if hic_kit:
+        rg_args = " ".join([rg_args, f"-r CN:{hic_kit}"])
+
+    return rg_args.lstrip().rstrip()
+
+
 rule samtools_import:
     input:
         pipe=Path(workingdir, "trim", "reads.fastq") if cram_out else [],
@@ -33,12 +45,15 @@ rule samtools_import:
         cram=cram_out if cram_out else [],
         index=Path(cram_out.as_posix() + ".crai") if cram_out else [],
         flagstat=cram_out.with_suffix(".flagstat") if cram_out else [],
+    params:
+        rg_line=get_rg_line,
     log:
         Path(logs_directory, "samtools_import.log"),
     shell:
         "samtools import "
         "-@{threads} "
         "-s {input.pipe} "
+        "{params.rg_line} "
         "-o {output.cram} "
         "2> {log} "
         "&& "
