@@ -26,41 +26,85 @@ else:
 include: "rules/stats.smk"
 
 
+rule samtools_import:
+    input:
+        pipe=Path(workingdir, "trim", "reads.fastq") if cram_out else [],
+    output:
+        cram=cram_out if cram_out else [],
+        index=Path(cram_out.as_posix() + ".crai") if cram_out else [],
+        flagstat=cram_out.with_suffix(".flagstat") if cram_out else [],
+    log:
+        Path(logs_directory, "samtools_import.log"),
+    shell:
+        "samtools import "
+        "-@{threads} "
+        "-s {input.pipe} "
+        "-o {output.cram} "
+        "2> {log} "
+        "&& "
+        "samtools index "
+        "{output.cram} "
+        "2>> {log} "
+        "&& "
+        "samtools flagstat "
+        "{output.cram} "
+        "> {output.flagstat} "
+        "2>> {log} "
+
+
+rule reformat:
+    input:
+        pipe=Path(workingdir, "trim", "reads.fastq") if r1_out else [],
+    output:
+        r1=r1_out if r1_out else [],
+        r2=r2_out if r1_out else [],
+    log:
+        Path(logs_directory, "reformat.log"),
+    resources:
+        mem=lambda wildcards, attempt: f"{4* attempt}GiB",
+    shell:
+        "reformat.sh "
+        "-Xmx{resources.mem_mb}m "
+        "threads={threads} "
+        "in={input.pipe} "
+        "int=t "
+        "out={output.r1} "
+        "out2={output.r2} "
+        "2> {log} "
+
+
 rule trim:
     input:
         pipe=Path(workingdir, "repair", "reads.fastq"),
         adaptors=Path(workingdir, "adaptors.fasta"),
     output:
         gchist=Path(logs_directory, "gchist.txt"),
-        r1=r1_out,
-        r2=r2_out,
         stats=Path(logs_directory, "trim_stats.txt"),
         unpaired=Path(workingdir, "unpaired.fq.gz"),
+        pipe=pipe(Path(workingdir, "trim", "reads.fastq")),
     params:
         forcetrimmod=5,
-        qtrim=lambda wildcards: f"qtrim=r trimq={trimq}" if qtrim else "",
-        threads=lambda wildcards, threads: int(threads // 3),  # split cores between bbduk and pigz
+        qtrim=lambda wildcards: f"qtrim=r trimq={trimq} " if qtrim else "",
     log:
         Path(logs_directory, "trim.log"),
-    threads: workflow.cores - 2  # save 2 cores for repair
+    threads: workflow.cores - 3  # save 2 cores for repair and one for reformat
     resources:
         mem=lambda wildcards, attempt: f"{4* attempt}GiB",
     shell:
         "bbduk.sh "
         "-Xmx{resources.mem_mb}m "
-        "threads={params.threads} "
+        "threads={threads} "
         "in={input.pipe} "
         "int=t "
-        "out={output.r1} "
-        "out2={output.r2} "
+        "out=stdout.fastq "
         "outs={output.unpaired} "
         "ref={input.adaptors} "
         "ktrim=r k=23 mink=11 hdist=1 tpe tbo "
         "forcetrimmod={params.forcetrimmod} "
-        "{params.qtrim} "
+        "{params.qtrim}"
         "gchist={output.gchist} "
         "stats={output.stats} "
-        "zl=9 "
+        ">> {output.pipe} "
         "2> {log} "
 
 
@@ -121,8 +165,15 @@ rule combine_adaptors:
         "2> {log} "
 
 
+if cram_out:
+    reads_out = rules.samtools_import.output
+
+if r1_out:
+    reads_out = rules.reformat.output
+
+
 rule target:
     default_target: True
     input:
         rules.output_stats.output,
-        rules.trim.output,
+        reads_out,

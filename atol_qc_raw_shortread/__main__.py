@@ -5,6 +5,7 @@ from importlib import resources
 from importlib.metadata import metadata, files
 from pathlib import Path
 import shutil
+import sys
 from snakemake.logging import logger
 import argparse
 from snakemake.api import (
@@ -85,15 +86,43 @@ def parse_arguments():
     # outputs
     output_group = parser.add_argument_group("Output")
 
-    output_group.add_argument(
-        "--out", required=True, type=Path, help="Read 1 output", dest="r1_out"
+    output_format = output_group.add_mutually_exclusive_group(required=True)
+
+    output_format.add_argument(
+        "--cram",
+        type=Path,
+        dest="cram_out",
+        help=(
+            """
+            CRAM output. For IO efficiency, you can output CRAM or fastq, but
+            not both. If you need both, convert the output afterwards.
+            """
+        ),
     )
-    output_group.add_argument(
-        "--out2", required=True, type=Path, help="Read 2 output", dest="r2_out"
+    output_format.add_argument(
+        "--out",
+        type=Path,
+        dest="r1_out",
+        help=(
+            """
+            Read 1 output. For IO efficiency, you can output CRAM or fastq, but
+            not both. If you need both, convert the output afterwards.
+            """
+        ),
     )
+
+    output_group.add_argument(
+        "--out2",
+        required="--out" in sys.argv,
+        type=Path,
+        help="Read 2 output",
+        dest="r2_out",
+    )
+
     output_group.add_argument(
         "--stats", required=True, type=Path, help="Stats output (json)", dest="stats"
     )
+
     output_group.add_argument(
         "--logs",
         required=False,

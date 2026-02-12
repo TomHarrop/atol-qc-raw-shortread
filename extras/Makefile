@@ -8,20 +8,18 @@ test_local:
 	atol-qc-raw-shortread \
 		--in test-data/AG_P8P5C_S101_L002_R1_001.fastq.gz \
 		--in2 test-data/AG_P8P5C_S101_L002_R2_001.fastq.gz \
-		--out test-output/local/r1.fq.gz \
-		--out2 test-output/local/r2.fq.gz \
+		--cram test-output/local/AG_P8P5C_S101_L002.cram  \
 		-a test-data/bbmap_39.01_adaptors.fa test-data/bbmap_39.01_adaptors2.fa \
 		--stats test-output/local/stats.json \
 		--logs test-output/local/logs \
-		--threads 14
+		--threads 14 -n
 
 full_test:
 	atol-qc-raw-shortread \
 		--in 350768_AusARG_BRF_HCN7WDRXY_S3_L001_R1_001.fastq.gz \
 		--in2 350768_AusARG_BRF_HCN7WDRXY_S3_L001_R2_001.fastq.gz \
 		--adaptors test-data/bbmap_39.01_adaptors.fa \
-		--out test-output/full/r1.fq.gz \
-		--out2 test-output/full/r2.fq.gz \
+		--cram test-output/full/350768_AusARG_BRF_HCN7WDRXY_S3_L001.cram \
 		--stats test-output/full/stats.json \
 		--logs test-output/full/logs \
 		--threads 14
