@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 (2026-02-12)
+
+### New
+
+* Output CRAM by default.
+
 ## 0.1.7 (2025-10-23)
 
 ### Changes
