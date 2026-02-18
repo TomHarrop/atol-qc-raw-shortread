@@ -41,7 +41,7 @@ include: "rules/stats.smk"
 
 rule samtools_import:
     input:
-        pipe=Path(workingdir, "trim", "reads.fastq") if cram_out else [],
+        pipe=Path(workingdir, "trim", "reads.fastq")
     output:
         cram=cram_out if cram_out else [],
         index=Path(cram_out.as_posix() + ".crai") if cram_out else [],
@@ -68,6 +68,7 @@ rule samtools_import:
         "2>> {log} "
 
 
+
 rule reformat:
     input:
         pipe=Path(workingdir, "trim", "reads.fastq") if r1_out else [],
@@ -88,6 +89,7 @@ rule reformat:
         "out2={output.r2} "
         "2> {log} "
 
+        
 
 rule trim:
     input:
@@ -102,7 +104,8 @@ rule trim:
         forcetrimmod=5,
         qtrim=lambda wildcards: f"qtrim=r trimq={trimq} " if qtrim else "",
     log:
-        Path(logs_directory, "trim.log"),
+        trim=Path(logs_directory, "trim.log"),
+        rename=Path(logs_directory, "rename.log"),
     threads: workflow.cores - 3  # save 2 cores for repair and one for reformat
     resources:
         mem=lambda wildcards, attempt: f"{4* attempt}GiB",
@@ -120,9 +123,17 @@ rule trim:
         "{params.qtrim}"
         "gchist={output.gchist} "
         "stats={output.stats} "
+        "2> {log.trim} " 
+        "| "
+        "reformat.sh "
+        "in=stdin.fastq "
+        "int=t "
+        "out=stdout.fastq "
+        "trimreaddescription=t "    # required for samtools import
+        "addslash=t "               # required for samtools import
+        "spaceslash=f "             # required for samtools import
         ">> {output.pipe} "
-        "2> {log} "
-
+        "2> {log.rename} "
 
 # double check pairing
 rule repair:
