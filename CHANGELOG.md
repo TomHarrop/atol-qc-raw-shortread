@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 (2026-02-25)
+
+### Changes
+
+* Add checksums in stats.json (fixes #2)
+
+* Use a raw string for parsing bbmap logs.
+
 ## 0.2.2 (2026-02-18)
 
 ### Changes
