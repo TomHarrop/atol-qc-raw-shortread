@@ -41,7 +41,7 @@ include: "rules/stats.smk"
 
 rule samtools_import:
     input:
-        pipe=Path(workingdir, "trim", "reads.fastq")
+        pipe=Path(workingdir, "trim", "reads.fastq"),
     output:
         cram=cram_out if cram_out else [],
         index=Path(cram_out.as_posix() + ".crai") if cram_out else [],
@@ -68,7 +68,6 @@ rule samtools_import:
         "2>> {log} "
 
 
-
 rule reformat:
     input:
         pipe=Path(workingdir, "trim", "reads.fastq") if r1_out else [],
@@ -89,7 +88,6 @@ rule reformat:
         "out2={output.r2} "
         "2> {log} "
 
-        
 
 rule trim:
     input:
@@ -123,17 +121,21 @@ rule trim:
         "{params.qtrim}"
         "gchist={output.gchist} "
         "stats={output.stats} "
-        "2> {log.trim} " 
+        "2> {log.trim} "
         "| "
         "reformat.sh "
         "in=stdin.fastq "
         "int=t "
         "out=stdout.fastq "
-        "trimreaddescription=t "    # required for samtools import
-        "addslash=t "               # required for samtools import
-        "spaceslash=f "             # required for samtools import
+        "trimreaddescription=t "
+        "addslash=t "
+        "spaceslash=f "
         ">> {output.pipe} "
         "2> {log.rename} "
+        # required for samtools import
+        # required for samtools import
+        # required for samtools import
+
 
 # double check pairing
 rule repair:
@@ -192,11 +194,28 @@ rule combine_adaptors:
         "2> {log} "
 
 
+rule checksum:
+    wildcard_constraints:
+        checkum="|".join(["md5", "sha256"]),
+    input:
+        Path("{file}"),
+    output:
+        Path("{file}.{checksum}"),
+    shell:
+        "{wildcards.checksum}sum "
+        "{input} "
+        "> {output}"
+
+
 if cram_out:
     reads_out = rules.samtools_import.output
 
+
 if r1_out:
     reads_out = rules.reformat.output
+
+
+checksums = expand([x + ".{checksum}" for x in reads_out], checksum=["md5", "sha256"])
 
 
 rule target:
@@ -204,3 +223,4 @@ rule target:
     input:
         rules.output_stats.output,
         reads_out,
+        checksums,
