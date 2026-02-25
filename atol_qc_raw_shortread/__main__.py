@@ -23,7 +23,7 @@ from snakemake.settings.enums import Quietness, RerunTrigger
 def get_usable_threads(threads: int):
     # the number allocated to bbduk needs to be factor of 3
     usable_threads = int(2 + ((threads - 2) // 3) * 3)
-    logger.warning(f"Guessing the number of usable_threads is {usable_threads}")
+    logger.debug(f"Guessing the number of usable_threads is {usable_threads}")
     return usable_threads
 
 
@@ -170,7 +170,7 @@ def main():
     # get the snakefile
     snakefile = Path(resources.files(__package__), "workflow", "Snakefile")
     if snakefile.is_file():
-        logger.warning(f"Using snakefile {snakefile}")
+        logger.debug(f"Using snakefile {snakefile}")
     else:
         raise FileNotFoundError("Could not find a Snakefile")
 
@@ -178,13 +178,13 @@ def main():
         resources.files(__package__), "workflow", "report", "stats.json"
     )
     if stats_template.is_file():
-        logger.warning(f"Using stats_template {stats_template}")
+        logger.debug(f"Using stats_template {stats_template}")
     else:
         raise FileNotFoundError("Could not find a stats_template")
 
     # get arguments
     args = parse_arguments()
-    logger.warning(f"Entrypoint args:\n    {args}")
+    logger.debug(f"Entrypoint args:\n    {args}")
     args.stats_template = stats_template
 
     # control output

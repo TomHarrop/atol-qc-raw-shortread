@@ -19,7 +19,7 @@ log_fields = [
 if qtrim:
     log_fields.append("QTrimmed:")
 
-log_regex = "\|".join(log_fields)
+log_regex = r"\|".join(log_fields)
 
 
 def get_stats_params(wildcards, input):
@@ -80,7 +80,7 @@ rule grep_logs:
         temp(Path(workingdir, "from_logs", "{step}.txt")),
     shell:
         # awk -F '[[:space:]]{2,}' means separated by two or more spaces
-        "grep '^\({log_regex}\)' {input} "
+        "grep '^\\({log_regex}\\)' {input} "
         "| "
         "awk -F '[[:space:]]{{2,}}' "
         "'{{print $1, $2, $3}}' "
