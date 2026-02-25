@@ -36,9 +36,6 @@ else:
     logger.warning(f"Saving logs to {logs_directory}")
 
 
-include: "rules/stats.smk"
-
-
 rule samtools_import:
     input:
         pipe=Path(workingdir, "trim", "reads.fastq"),
@@ -194,28 +191,19 @@ rule combine_adaptors:
         "2> {log} "
 
 
-rule checksum:
-    wildcard_constraints:
-        checkum="|".join(["md5", "sha256"]),
-    input:
-        Path("{file}"),
-    output:
-        Path("{file}.{checksum}"),
-    shell:
-        "{wildcards.checksum}sum "
-        "{input} "
-        "> {output}"
 
 
 if cram_out:
     reads_out = rules.samtools_import.output
+    reads_files = {"cram": rules.samtools_import.output.cram}
 
 
 if r1_out:
     reads_out = rules.reformat.output
+    reads_files = {"r1": rules.reformat.output.r1, "r2": rules.reformat.output.r2}
 
 
-checksums = expand([x + ".{checksum}" for x in reads_out], checksum=["md5", "sha256"])
+include: "rules/stats.smk"
 
 
 rule target:
@@ -223,4 +211,3 @@ rule target:
     input:
         rules.output_stats.output,
         reads_out,
-        checksums,

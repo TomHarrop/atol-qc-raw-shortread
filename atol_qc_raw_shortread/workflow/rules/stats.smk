@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 
 # Configure log parsing. These fields will be grepped out of the bbduk logs and
 # show up in the final CSVs.
@@ -42,12 +43,30 @@ def get_stats_params(wildcards, input):
 
         mean_gc_content = line.split("\t")[1]
 
+    checksums_dict = {}
+
+    for checksum in input.checksums:
+        checksum_path = Path(checksum)
+        alg = checksum_path.suffix.lstrip(".")
+        file = checksum_path.with_suffix("").name
+
+        if file not in checksums_dict:
+            checksums_dict[file] = {}
+
+        checksums_dict[file][alg] = read_checksum(checksum_path)
+
     return {
         "base_count": int(base_count),
         "read_count": int(read_count),
         "mean_gc_content": float(mean_gc_content),
         "qc_bases_removed": int(qc_bases_removed),
+        "checksums": checksums_dict,
     }
+
+
+def read_checksum(checksum_file):
+    with open(checksum_file, "rt") as f:
+        return f.readline().split()[0]
 
 
 rule output_stats:
@@ -55,7 +74,11 @@ rule output_stats:
         trim_stats=Path(logs_directory, "trim.csv"),
         repair_stats=Path(logs_directory, "repair.csv"),
         gchist=Path(logs_directory, "gchist.txt"),
-        template=stats_template,
+        schema=stats_schema,
+        checksums=expand(
+            [x + ".{checksum}" for x in reads_files.values()],
+            checksum=["md5", "sha256"],
+        ),
     output:
         stats,
     params:
@@ -86,3 +109,16 @@ rule grep_logs:
         "'{{print $1, $2, $3}}' "
         "OFS='\t' "
         "> {output} "
+
+
+rule checksum:
+    wildcard_constraints:
+        checkum="|".join(["md5", "sha256"]),
+    input:
+        Path("{file}"),
+    output:
+        Path("{file}.{checksum}"),
+    shell:
+        "{wildcards.checksum}sum "
+        "{input} "
+        "> {output}"

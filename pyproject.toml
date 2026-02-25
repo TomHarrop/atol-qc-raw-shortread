@@ -35,7 +35,7 @@ packages = ["atol_qc_raw_shortread"]
 atol_qc_raw_shortread = [
     "workflow/Snakefile",
     "workflow/rules/stats.smk",
-    "workflow/report/stats.json",
+    "workflow/report/stats_schema.json",
     "workflow/scripts/render_template.py",
 ]
 

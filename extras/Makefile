@@ -1,19 +1,33 @@
-shell=/bin/bash
+shell = /bin/bash
 
 local_version := $(shell python3 -m setuptools_scm)
 tmpdir := $(shell mktemp -d)
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 
-test_local:
+test_local: test_local_cram test_local_fastq
+
+
+test_local_cram:
 	atol-qc-raw-shortread \
 		--in test-data/AG_P8P5C_S101_L002_R1_001.fastq.gz \
 		--in2 test-data/AG_P8P5C_S101_L002_R2_001.fastq.gz \
-		--cram test-output/local/AG_P8P5C_S101_L002.cram  \
+		--cram test-output/local_cram/AG_P8P5C_S101_L002.cram \
 		--dataset_id "AG_P8P5C" \
 		--hic_kit "arima" \
 		-a test-data/bbmap_39.01_adaptors.fa test-data/bbmap_39.01_adaptors2.fa \
-		--stats test-output/local/stats.json \
-		--logs test-output/local/logs \
+		--stats test-output/local_cram/stats.json \
+		--logs test-output/local_cram/logs \
+		--threads 14
+
+test_local_fastq:
+	atol-qc-raw-shortread \
+		--in test-data/AG_P8P5C_S101_L002_R1_001.fastq.gz \
+		--in2 test-data/AG_P8P5C_S101_L002_R2_001.fastq.gz \
+		--out test-output/local_fastq/AG_P8P5C_S101_L002.r1.fq \
+		--out2 test-output/local_fastq/AG_P8P5C_S101_L002.r2.fq \
+		-a test-data/bbmap_39.01_adaptors.fa test-data/bbmap_39.01_adaptors2.fa \
+		--stats test-output/local_fastq/stats.json \
+		--logs test-output/local_fastq/logs \
 		--threads 14
 
 full_test:
@@ -25,7 +39,7 @@ full_test:
 		--stats test-output/full/stats.json \
 		--logs test-output/full/logs \
 		--threads 14
-		
+
 changelog: CHANGELOG.md
 
 CHANGELOG.md: .git/index
