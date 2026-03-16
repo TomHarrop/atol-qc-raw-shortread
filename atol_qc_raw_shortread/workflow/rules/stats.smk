@@ -32,8 +32,12 @@ def get_stats_params(wildcards, input):
     input_bases = int(
         repair_stats.loc[repair_stats["type"] == "Input", "bases"].iloc[0]
     )
+    input_reads = int(
+        repair_stats.loc[repair_stats["type"] == "Input", "reads"].iloc[0]
+    )
 
     qc_bases_removed = input_bases - base_count
+    qc_reads_removed = input_reads - read_count
 
     with open(input.gchist, "r") as f:
         line = ""
@@ -60,6 +64,7 @@ def get_stats_params(wildcards, input):
         "read_count": int(read_count),
         "mean_gc_content": float(mean_gc_content),
         "qc_bases_removed": int(qc_bases_removed),
+        "qc_reads_removed": int(qc_reads_removed),
         "checksums": checksums_dict,
     }
 
@@ -113,7 +118,7 @@ rule grep_logs:
 
 rule checksum:
     wildcard_constraints:
-        checkum="|".join(["md5", "sha256"]),
+        checksum="|".join(["md5", "sha256"]),
     input:
         Path("{file}"),
     output:
